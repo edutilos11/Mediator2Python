@@ -20,11 +20,11 @@
         expr_term
           term  size
 
-请你根据以下例子，将抽象语法树转换成字典类型，例如：
+Please convert the abstract syntax tree into a dictionary format based on the following example, such as:
  typedef
     real
     Real
-对应
+map to
 "typedefs": [
     "Real = real"
 ]，
@@ -49,7 +49,7 @@
                 number  1
         expr_term
           term  size
-对应
+map to
 "functions": [
     {
         "name": "next",
@@ -150,7 +150,7 @@ automaton
               term
                 next
                 term    phead
-对应
+map to
 "automata": [
     {
         "name": "Queue",
@@ -200,7 +200,7 @@ system
       term
         term    queue2
         A
-对应
+map to
 "systems": [
     {
         "name": "QueueSystem",
@@ -213,7 +213,7 @@ system
             "queue1.B -> queue2.A"
         ]
     }
-]。现在我的抽象语法树如下：
+]。Now my abstract syntax tree is as follows:
 program
   typedef
     primitive_type
@@ -377,4 +377,4 @@ program
             expr_term
               term
                 bool_f
-请你生成字典结构。
+Please convert it into a dictionary structure.
