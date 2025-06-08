@@ -1,0 +1,380 @@
+  function
+    [('size', "Tree('int', [])")]
+    next
+    func_interface
+      param
+        pcurr
+        input_type
+          int
+      output_type
+        int
+    return_stmt
+      mol_expr
+        expr
+          add_expr
+            expr_term
+              term      pcurr
+            expr_term
+              term
+                number  1
+        expr_term
+          term  size
+
+请你根据以下例子，将抽象语法树转换成字典类型，例如：
+ typedef
+    real
+    Real
+对应
+"typedefs": [
+    "Real = real"
+]，
+ function
+    [('size', "Tree('int', [])")]
+    next
+    func_interface
+      param
+        pcurr
+        input_type
+          int
+      output_type
+        int
+    return_stmt
+      mol_expr
+        expr
+          add_expr
+            expr_term
+              term      pcurr
+            expr_term
+              term
+                number  1
+        expr_term
+          term  size
+对应
+"functions": [
+    {
+        "name": "next",
+        "args": [{"name": "pcurr", "type": "int"}],
+        "return_type": "int",
+        "statements": [
+            "return (pcurr + 1) % size"
+        ]
+    }
+]，
+automaton
+    [('T', 'type'), ('size', "Tree('int', [])")]
+    Queue
+    port
+      A
+      port_decl
+        in
+        {'type': 'abstract', 'name': 'T'}
+    port
+      B
+      port_decl
+        out
+        {'type': 'abstract', 'name': 'T'}
+    var_block
+      var_decl
+        buf
+        array
+          union
+            {'type': 'abstract', 'name': 'T'}
+            {'type': 'concrete', 'name': 'NULL'}
+          expr_term
+            term        size
+        expr_term
+          term  null
+      var_decl
+        phead
+        int
+        expr_term
+          term
+            number      0
+      var_decl
+        ptail
+        int
+        expr_term
+          term
+            number      0
+    trans_block
+      trans_decl
+        guarded_stmt
+          and_expr
+            expr
+              not_expr
+                expr_term
+                  term
+                    term        A
+                    reqRead
+            expr
+              eq_expr
+                expr_term
+                  term
+                    term        buf
+                    expr_term
+                      term      phead
+                expr_term
+                  term  null
+          assign_stmt
+            term
+              term      A
+              reqRead
+            expr_term
+              term
+                bool_t
+      trans_decl
+        guarded_stmt
+          expr
+            and_expr
+              expr_term
+                term
+                  term  A
+                  reqRead
+              expr_term
+                term
+                  term  A
+                  reqWrite
+          sync_stmt     A
+          assign_stmt
+            term
+              term      buf
+              expr_term
+                term    phead
+            expr_term
+              term
+                term    A
+                value
+          assign_stmt
+            term        phead
+            expr_term
+              term
+                next
+                term    phead
+对应
+"automata": [
+    {
+        "name": "Queue",
+        "template_params": ["T", "size"],
+        "ports": [
+            {"name": "A", "direction": "in", "type": "T"},
+            {"name": "B", "direction": "out", "type": "T"}
+        ],
+        "variables": [
+            {"name": "buf", "type": "Array[T,size]", "init_value": "None"},
+            {"name": "phead", "type": "int", "init_value": "0"},
+            {"name": "ptail", "type": "int", "init_value": "0"}
+        ],
+        "transitions": [
+            {
+                "guard": "not self.ports['A'].req_read and (self.variables['buf'][self.variables['phead']] == None)",
+                "statements": ["self.ports['A'].req_read = True"]
+            },
+            {
+                "guard": "self.ports['A'].req_read and self.ports['A'].req_write",
+                "statements": [
+                    "sync A",
+                    "self.variables['buf'][self.variables['phead']] = self.ports['A'].value",
+                    "self.variables['phead'] = next(self.variables['phead'])"
+                ]
+            }
+        ]
+    }
+]，
+system
+    QueueSystem
+    internals   internal_channel
+    component_block
+      component_decl
+        queue1
+        system_type     Queue
+      component_decl
+        queue2
+        system_type     Queue
+    connection
+      Queue
+      template_args
+        term    T
+      term
+        term    queue1
+        B
+      term
+        term    queue2
+        A
+对应
+"systems": [
+    {
+        "name": "QueueSystem",
+        "components": {
+            "queue1": "Queue",
+            "queue2": "Queue"
+        },
+        "internals": ["internal_channel"],
+        "connections": [
+            "queue1.B -> queue2.A"
+        ]
+    }
+]。现在我的抽象语法树如下：
+program
+  typedef
+    primitive_type
+      enum_type null
+    term        null
+    NULL
+  automaton
+    [('T', 'type'), ('size', "Tree('int', [])")]
+    Queue
+    port
+      A
+      port_decl
+        in
+        {'type': 'abstract', 'name': 'T'}
+    port
+      B
+      port_decl
+        out
+        {'type': 'abstract', 'name': 'T'}
+    var_block
+      var_decl
+        buf
+        array
+          union
+            {'type': 'abstract', 'name': 'T'}
+            {'type': 'concrete', 'name': 'NULL'}
+          expr_term
+            term        size
+        expr_term
+          term  null
+      var_decl
+        phead
+        primitive_type
+          bounded_int
+            expr_term
+              term
+                number  0
+            expr
+              sub_expr
+                expr_term
+                  term  size
+                expr_term
+                  term
+                    number      1
+            expr_term
+              term
+                number  0
+      var_decl
+        ptail
+        primitive_type
+          bounded_int
+            expr_term
+              term
+                number  0
+            expr
+              sub_expr
+                expr_term
+                  term  size
+                expr_term
+                  term
+                    number      1
+            expr_term
+              term
+                number  0
+    trans_block
+      trans_decl
+        guarded_stmt
+          and_expr
+            expr
+              not_expr
+                expr_term
+                  term
+                    term        A
+                    reqRead
+            expr
+              eq_expr
+                expr_term
+                  term
+                    term        buf
+                    expr_term
+                      term      phead
+                expr_term
+                  term  null
+          assign_stmt
+            term
+              term      A
+              reqRead
+            expr_term
+              term
+                bool_t
+      trans_decl
+        guarded_stmt
+          and_expr
+            expr
+              expr_term
+                term
+                  term  A
+                  reqRead
+            expr
+              neq_expr
+                expr_term
+                  term
+                    term        buf
+                    expr_term
+                      term      phead
+                expr_term
+                  term  null
+          assign_stmt
+            term
+              term      A
+              reqRead
+            expr_term
+              term
+                bool_f
+      trans_decl
+        guarded_stmt
+          and_expr
+            expr
+              not_expr
+                expr_term
+                  term
+                    term        B
+                    reqWrite
+            expr
+              neq_expr
+                expr_term
+                  term
+                    term        buf
+                    expr_term
+                      term      ptail
+                expr_term
+                  term  null
+          assign_stmt
+            term
+              term      B
+              reqWrite
+            expr_term
+              term
+                bool_t
+      trans_decl
+        guarded_stmt
+          and_expr
+            expr
+              expr_term
+                term
+                  term  B
+                  reqWrite
+            expr
+              eq_expr
+                expr_term
+                  term
+                    term        buf
+                    expr_term
+                      term      ptail
+                expr_term
+                  term  null
+          assign_stmt
+            term
+              term      B
+              reqWrite
+            expr_term
+              term
+                bool_f
+请你生成字典结构。

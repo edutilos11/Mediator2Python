@@ -1,0 +1,29 @@
+typedef real as Real;
+function <size:int> next(pcurr:int) : int{
+    statements { return (pcurr + 1) % size; }
+}
+automaton <T:type,size:int> Queue(A:in T, B:out T) {
+    variables {
+        buf : (T | NULL)[size] init null;
+        phead : int init 0;
+        ptail : int init 0;
+    }
+    transitions {
+        (!A.reqRead) && (buf[phead] == null) -> A.reqRead := true;
+        (A.reqRead && A.reqWrite) -> {
+            sync A;
+            buf[phead] := A.value;
+            phead := next(phead);
+        }
+    }
+}
+system QueueSystem (){
+    internals internal_channel;
+    components {
+        queue1: Queue;
+        queue2: Queue;
+    }
+    connections {
+        Queue<T>(queue1.B, queue2.A);
+    }
+}
