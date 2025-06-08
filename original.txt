@@ -1,29 +1,24 @@
-typedef real as Real;
-function <size:int> next(pcurr:int) : int{
-    statements { return (pcurr + 1) % size; }
-}
-automaton <T:type,size:int> Queue(A:in T, B:out T) {
+automaton <id:int> heartbeat_monitor (
+    hb : in msgHeartbeat,
+    tick : in msgTick,
+    alarm : out msgAlarm
+) {
     variables {
-        buf : (T | NULL)[size] init null;
-        phead : int init 0;
-        ptail : int init 0;
+        missed : int init 0;
+        threshold : int init 3;
     }
+
     transitions {
-        (!A.reqRead) && (buf[phead] == null) -> A.reqRead := true;
-        (A.reqRead && A.reqWrite) -> {
-            sync A;
-            buf[phead] := A.value;
-            phead := next(phead);
+        (hb != null) -> {
+            missed := 0;
         }
-    }
-}
-system QueueSystem (){
-    internals internal_channel;
-    components {
-        queue1: Queue;
-        queue2: Queue;
-    }
-    connections {
-        Queue<T>(queue1.B, queue2.A);
+
+        (tick != null) -> {
+            missed := missed + 1;
+        }
+
+        (missed >= threshold) -> {
+            alarm := [id, true];
+        }
     }
 }

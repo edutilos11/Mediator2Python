@@ -1,0 +1,77 @@
+program
+  automaton
+    [('id', "Tree('int', [])")]
+    heartbeat_monitor
+    port
+      hb
+      port_decl
+        in
+        {'type': 'concrete', 'name': 'msgHeartbeat'}
+    port
+      tick
+      port_decl
+        in
+        {'type': 'concrete', 'name': 'msgTick'}
+    port
+      alarm
+      port_decl
+        out
+        {'type': 'concrete', 'name': 'msgAlarm'}
+    var_block
+      var_decl
+        missed
+        int
+        expr_term
+          term
+            number	0
+      var_decl
+        threshold
+        int
+        expr_term
+          term
+            number	3
+    trans_block
+      trans_decl
+        guarded_stmt
+          expr
+            neq_expr
+              expr_term
+                term	hb
+              expr_term
+                term	null
+          assign_stmt
+            term	missed
+            expr_term
+              term
+                number	0
+      trans_decl
+        guarded_stmt
+          expr
+            neq_expr
+              expr_term
+                term	tick
+              expr_term
+                term	null
+          assign_stmt
+            term	missed
+            add_expr
+              expr_term
+                term	missed
+              expr_term
+                term
+                  number	1
+      trans_decl
+        guarded_stmt
+          expr
+            ge_expr
+              expr_term
+                term	missed
+              expr_term
+                term	threshold
+          assign_stmt
+            term	alarm
+            expr_term
+              term
+                term	id
+                term
+                  bool_t

@@ -340,45 +340,43 @@ if __name__ == "__main__":
     
     # 示例AST字典
     ast_dict = {
-    "typedefs": [
-        "NULL = enum { null } init null"
-    ],
-    "automata": [
+  "automata": [
+    {
+      "name": "heartbeat_monitor",
+      "template_params": ["id"],
+      "ports": [
+        {"name": "hb", "direction": "in", "type": "msgHeartbeat"},
+        {"name": "tick", "direction": "in", "type": "msgTick"},
+        {"name": "alarm", "direction": "out", "type": "msgAlarm"}
+      ],
+      "variables": [
+        {"name": "missed", "type": "int", "init_value": "0"},
+        {"name": "threshold", "type": "int", "init_value": "3"}
+      ],
+      "transitions": [
         {
-        "name": "Queue",
-        "template_params": ["T", "size"],
-        "ports": [
-            {"name": "A", "direction": "in", "type": "T"},
-            {"name": "B", "direction": "out", "type": "T"}
-        ],
-        "variables": [
-            {"name": "buf", "type": "Array[T|NULL, size]", "init_value": "null"},
-            {"name": "phead", "type": "int 0..(size-1)", "init_value": "0"},
-            {"name": "ptail", "type": "int 0..(size-1)", "init_value": "0"}
-        ],
-        "transitions": [
-            {
-            "guard": "not self.ports['A'].req_read and (self.variables['buf'][self.variables['phead']] == null)",
-            "statements": ["self.ports['A'].req_read = True"]
-            },
-            {
-            "guard": "self.ports['A'].req_read and (self.variables['buf'][self.variables['phead']] != null)",
-            "statements": ["self.ports['A'].req_read = False"]
-            },
-            {
-            "guard": "not self.ports['B'].req_write and (self.variables['buf'][self.variables['ptail']] != null)",
-            "statements": ["self.ports['B'].req_write = True"]
-            },
-            {
-            "guard": "self.ports['B'].req_write and (self.variables['buf'][self.variables['ptail']] == null)",
-            "statements": ["self.ports['B'].req_write = False"]
-            }
-        ]
+          "guard": "self.ports['hb'] != None",
+          "statements": [
+            "self.variables['missed'] = 0"
+          ]
+        },
+        {
+          "guard": "self.ports['tick'] != None",
+          "statements": [
+            "self.variables['missed'] = self.variables['missed'] + 1"
+          ]
+        },
+        {
+          "guard": "self.variables['missed'] >= self.variables['threshold']",
+          "statements": [
+            "self.ports['alarm'] = self.template_params['id'].True"
+          ]
         }
-    ]
+      ]
     }
+  ]
+}
 
-    
     # 转换并输出
     python_code = converter.convert_from_ast(ast_dict)
     print("转换后的Python代码:")

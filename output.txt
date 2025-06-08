@@ -1,0 +1,137 @@
+"""
+Generated Python code from Mediator language
+This code simulates the behavior of Mediator automata and systems
+"""
+
+from typing import Any, Dict, List, Optional, Union, Callable
+from dataclasses import dataclass, field
+from enum import Enum
+import threading
+import queue
+import time
+from abc import ABC, abstractmethod
+
+# 基础类型映射
+
+
+# 自定义函数
+
+
+# 基础通信类
+class Port:
+    """端口类，用于自动机之间的通信"""
+    def __init__(self, name: str, direction: str, data_type: type, init_value=None):
+        self.name = name
+        self.direction = direction  # 'in' or 'out'
+        self.data_type = data_type
+        self.value = init_value
+        self.req_read = False
+        self.req_write = False
+        self._lock = threading.Lock()
+
+    def read(self):
+        with self._lock:
+            if self.direction == 'in' and self.req_write:
+                self.req_read = False
+                self.req_write = False
+                return self.value
+        return None
+
+    def write(self, value):
+        with self._lock:
+            if self.direction == 'out':
+                self.value = value
+                self.req_write = True
+                return True
+        return False
+
+class Automaton(ABC):
+    """自动机基类"""
+    def __init__(self, name: str):
+        self.name = name
+        self.ports: Dict[str, Port] = {}
+        self.variables: Dict[str, Any] = {}
+        self.running = False
+        self._thread = None
+
+    def add_port(self, name: str, direction: str, data_type: type, init_value=None):
+        self.ports[name] = Port(name, direction, data_type, init_value)
+
+    def start(self):
+        if not self.running:
+            self.running = True
+            self._thread = threading.Thread(target=self._run)
+            self._thread.start()
+
+    def stop(self):
+        self.running = False
+        if self._thread:
+            self._thread.join()
+
+    def _run(self):
+        while self.running:
+            self._execute_transitions()
+            time.sleep(0.001)  # 防止过度占用CPU
+
+    @abstractmethod
+    def _execute_transitions(self):
+        """执行转换逻辑"""
+        pass
+
+# 自动机实现
+
+
+class heartbeat_monitorGeneric(Automaton):
+    """heartbeat_monitor automaton converted from Mediator"""
+
+    def __init__(self, id: type):
+        super().__init__("heartbeat_monitor")
+
+        # 添加端口
+
+        self.add_port("hb", "in", msgHeartbeat)
+
+        self.add_port("tick", "in", msgTick)
+
+        self.add_port("alarm", "out", msgAlarm)
+
+
+        # 初始化变量
+
+        self.variables["missed"] = 0
+
+        self.variables["threshold"] = 3
+
+
+    def _execute_transitions(self):
+        """执行转换逻辑"""
+
+        # 转换: self.ports['hb'] != None
+        if self.ports['hb'] not = None:
+
+                self.variables['missed'] = 0
+
+            return
+
+        # 转换: self.ports['tick'] != None
+        if self.ports['tick'] not = None:
+
+                self.variables['missed'] = self.variables['missed'] + 1
+
+            return
+
+        # 转换: self.variables['missed'] >= self.variables['threshold']
+        if self.variables['missed'] >= self.variables['threshold']:
+
+                self.ports['alarm'] = self.template_params['id'].True
+
+            return
+
+
+
+# 系统实现
+
+
+if __name__ == "__main__":
+    # 示例使用代码
+    print("Mediator to Python conversion completed!")
